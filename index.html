@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>EF On‑the‑Go — Solar • ADT</title>
+  <meta name="description" content="On-the-go: postear assets, capturar leads, clasificarlos y enviarlos por WhatsApp." />
+  <meta name="theme-color" content="#0b1220" />
+  <style>
+    :root{
+      --bg:#070A12; --card:rgba(255,255,255,.06); --line:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.68);
+      --shadow:0 18px 55px rgba(0,0,0,.45);
+      --a:#2dd4bf; --b:#8b5cf6; --r:18px; --max:1100px;
+      --danger:rgba(252,165,165,.55);
+      --ok:rgba(134,239,172,.40);
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb; --card:rgba(10,18,32,.06); --line:rgba(10,18,32,.16);
+      --text:rgba(10,18,32,.92); --muted:rgba(10,18,32,.62);
+      --shadow:0 18px 55px rgba(10,18,32,.14);
+      --a:#0ea5e9; --b:#7c3aed;
+      --danger:rgba(239,68,68,.25);
+      --ok:rgba(34,197,94,.20);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1100px 600px at 20% -10%, rgba(45,212,191,.18), transparent 60%),
+                  radial-gradient(1100px 600px at 90% 10%, rgba(139,92,246,.18), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:var(--max); margin:0 auto; padding:22px 14px 64px;}
+    .top{
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      padding:10px 12px; border:1px solid var(--line); border-radius:999px;
+      background: linear-gradient(180deg, var(--card), transparent);
+      box-shadow: var(--shadow); backdrop-filter: blur(10px);
+    }
+    .brand{display:flex; gap:10px; align-items:center; padding-left:8px;}
+    .logo{width:34px;height:34px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--b))}
+    .btn{
+      cursor:pointer; border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      color:var(--text); padding:10px 12px; border-radius:999px; font-weight:800;
+    }
+    [data-theme="light"] .btn{background: linear-gradient(180deg, rgba(10,18,32,.10), rgba(10,18,32,.04));}
+    .btn.primary{border-color:rgba(45,212,191,.35); background: linear-gradient(135deg, rgba(45,212,191,.18), rgba(139,92,246,.18));}
+    .btn.danger{border-color:var(--danger);}
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-top:14px;}
+    @media(max-width:960px){.grid2{grid-template-columns:1fr}}
+    .card{border:1px solid var(--line); border-radius:var(--r); background:linear-gradient(180deg, var(--card), transparent); box-shadow:var(--shadow); overflow:hidden;}
+    .pad{padding:16px}
+    h1{margin:0 0 8px; font-size:28px; letter-spacing:-.4px; line-height:1.05;}
+    .sub{margin:0 0 12px; color:var(--muted); font-size:14px;}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px}
+    input,select,textarea{
+      width:100%; padding:12px; border-radius:14px; border:1px solid var(--line);
+      background:rgba(0,0,0,.12); color:var(--text); outline:none;
+    }
+    [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:rgba(255,255,255,.86);}
+    textarea{min-height:84px;resize:vertical}
+    .row{margin-top:12px}
+    .miniGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    @media(max-width:520px){.miniGrid{grid-template-columns:1fr}}
+    .products{display:flex; gap:8px; flex-wrap:wrap; padding:10px; border:1px solid var(--line); border-radius:14px; background:var(--card)}
+    .chip{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.12);font-weight:900;font-size:13px}
+    [data-theme="light"] .chip{background:rgba(255,255,255,.75);}
+    .chip input{width:auto;margin:0}
+    .actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .status{
+      display:none; margin-top:12px; padding:12px; border-radius:14px;
+      border:1px solid var(--line); background:var(--card); color:var(--muted); white-space:pre-wrap;
+    }
+    .status.ok{display:block;border-color:var(--ok)}
+    .status.err{display:block;border-color:var(--danger)}
+    .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .pill{font-size:12px;color:var(--muted);padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card)}
+    .leadRow{
+      border:1px solid var(--line); border-radius:14px; padding:12px; background:var(--card);
+    }
+    .leadTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start; flex-wrap:wrap}
+    .leadName{font-weight:950}
+    .small{font-size:12px; color:var(--muted)}
+    .selectSm{padding:9px;border-radius:12px}
+    footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body data-theme="dark">
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo"></div>
+      <div>
+        <b>EF On‑the‑Go</b>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px;">Post → Lead → Clasifica → WhatsApp</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button class="btn" id="themeBtn" type="button">🌙 / ☀️</button>
+      <a class="btn primary" href="#capture">Capturar Lead</a>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <section class="card" id="capture">
+      <div class="pad">
+        <h1>Capturar lead (Solar / ADT)</h1>
+        <p class="sub">Modo calle: siempre funciona (sin backend). Abre WhatsApp con la tarjeta del lead y lo guarda local.</p>
+
+        <form id="leadForm">
+          <div class="row">
+            <label>Interés *</label>
+            <div class="products">
+              <label class="chip"><input type="checkbox" name="products" value="Solar" /> ☀️ Solar</label>
+              <label class="chip"><input type="checkbox" name="products" value="ADT" /> 🛡️ ADT</label>
+            </div>
+          </div>
+
+          <div class="row miniGrid">
+            <div>
+              <label>Nombre / Negocio *</label>
+              <input required name="name" placeholder="Ej: Juan Pérez / Colmado X" />
+            </div>
+            <div>
+              <label>Teléfono (WhatsApp) *</label>
+              <input required name="phone" inputmode="tel" placeholder="Ej: 787-366-9900" />
+            </div>
+            <div>
+              <label>Municipio *</label>
+              <select required name="city">
+                <option value="" selected>Selecciona…</option>
+                <option>San Juan</option><option>Bayamón</option><option>Carolina</option><option>Guaynabo</option>
+                <option>Arecibo</option><option>Hatillo</option><option>Camuy</option><option>Manatí</option>
+                <option>Aguadilla</option><option>Isabela</option><option>Moca</option><option>San Sebastián</option><option>Mayagüez</option>
+                <option>Ponce</option><option>Guayama</option><option>Humacao</option><option>Fajardo</option>
+                <option>Otro</option>
+              </select>
+            </div>
+            <div>
+              <label>Mejor hora para llamar</label>
+              <select name="best_time">
+                <option value="" selected>Cuando pueda</option>
+                <option>9:00am - 12:00pm</option>
+                <option>12:00pm - 3:00pm</option>
+                <option>3:00pm - 6:30pm</option>
+                <option>Después de 6:30pm</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>Notas (opcional)</label>
+            <textarea name="notes" placeholder="Ej: apagones, cámaras, factura LUMA, etc."></textarea>
+          </div>
+
+          <div class="row miniGrid">
+            <div>
+              <label>Owner</label>
+              <select name="owner">
+                <option value="Sergio" selected>Sergio</option>
+                <option value="Ivan">Ivan</option>
+                <option value="Danny">Danny</option>
+              </select>
+            </div>
+            <div>
+              <label>Status</label>
+              <select name="status">
+                <option value="🆕 Nuevo" selected>🆕 Nuevo</option>
+                <option value="🎯 Acción hoy">🎯 Acción hoy</option>
+                <option value="🔁 Seguimiento">🔁 Seguimiento</option>
+                <option value="🔥 Alta probabilidad">🔥 Alta probabilidad</option>
+                <option value="✅ Cerrado">✅ Cerrado</option>
+                <option value="❌ Perdido">❌ Perdido</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn primary" type="submit">Guardar + WhatsApp</button>
+            <button class="btn" type="button" id="copyBtn">Copiar tarjeta</button>
+            <button class="btn" type="button" id="sendIvanBtn">Enviar a Ivan</button>
+            <button class="btn" type="button" id="sendDannyBtn">Enviar a Danny</button>
+          </div>
+
+          <div class="status" id="statusBox"></div>
+        </form>
+
+        <div class="row">
+          <div class="toolbar">
+            <span class="pill">Tu WhatsApp: <b>787‑366‑9900</b></span>
+            <span class="pill">Modo: <b>Offline‑first</b></span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="pad">
+        <h1>Generar Morning Pack (demo)</h1>
+        <p class="sub">Botón para batch rápido (API Vercel). Si falla, no rompe el capture.</p>
+
+        <div class="row miniGrid">
+          <div>
+            <label>Zona</label>
+            <select id="gen_zone">
+              <option value="mezclado" selected>Mezclado (Isla)</option>
+              <option value="metro">Metro</option>
+              <option value="norte">Norte</option>
+              <option value="oeste">Oeste</option>
+              <option value="sur">Sur</option>
+              <option value="este">Este</option>
+              <option value="centro">Centro</option>
+            </select>
+          </div>
+          <div>
+            <label>Categoría</label>
+            <select id="gen_category">
+              <option value="mixed_top" selected>Top Mixto (score alto)</option>
+              <option value="restaurantes">Restaurantes</option>
+              <option value="colmados">Colmados</option>
+              <option value="barberias">Barberías</option>
+              <option value="ferreterias">Ferreterías</option>
+              <option value="talleres">Talleres</option>
+              <option value="clinicas">Clínicas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row miniGrid">
+          <div>
+            <label>Cantidad</label>
+            <select id="gen_n">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div>
+            <label>Acción</label>
+            <div class="actions" style="margin-top:0;">
+              <button class="btn primary" type="button" id="genBtn">⚡ Generate</button>
+              <button class="btn" type="button" id="copyPackBtn">Copy Pack</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="status" id="genStatus"></div>
+
+        <hr style="border:none;border-top:1px solid var(--line); margin:16px 0;"/>
+
+        <h1>Kanban local (rápido)</h1>
+        <p class="sub">Tus leads guardados en este dispositivo. Puedes filtrar por status y exportar JSON.</p>
+
+        <div class="row miniGrid">
+          <div>
+            <label>Filtrar status</label>
+            <select id="filter_status">
+              <option value="" selected>Todos</option>
+              <option>🆕 Nuevo</option>
+              <option>🎯 Acción hoy</option>
+              <option>🔁 Seguimiento</option>
+              <option>🔥 Alta probabilidad</option>
+              <option>✅ Cerrado</option>
+              <option>❌ Perdido</option>
+            </select>
+          </div>
+          <div>
+            <label>Acciones</label>
+            <div class="actions" style="margin-top:0;">
+              <button class="btn" type="button" id="exportJsonBtn">Export JSON</button>
+              <button class="btn danger" type="button" id="clearBtn">Borrar todo</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="leadList"></div>
+
+      </div>
+    </section>
+  </div>
+
+  <footer>EF On‑the‑Go • v0.1 • Deploy: Vercel • Repo: GitHub</footer>
+</div>
+
+<script>
+  const MY_WA = "17873669900";      // tu número
+  const IVAN_WA = "19395299382";    // Ivan
+  const DANNY_WA = "";              // pon el de Danny (1XXXXXXXXXX) cuando lo tengas
+  const GEN_ENDPOINT = "/api/generate";
+
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(type, msg){
+    const box = $("statusBox");
+    box.className = "status " + (type === "ok" ? "ok" : "err");
+    box.textContent = msg;
+  }
+  function setGenStatus(type, msg){
+    const box = $("genStatus");
+    box.className = "status " + (type === "ok" ? "ok" : "err");
+    box.textContent = msg;
+  }
+  function waLinkTo(num, text){
+    return `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+  }
+  function normalizePhone(s){
+    if(!s) return "";
+    const d = String(s).replace(/\D/g, "");
+    if(d.length === 10) return "1" + d;
+    if(d.length === 11 && d.startsWith("1")) return d;
+    return d;
+  }
+  function getSelectedProducts(form){
+    const vals = [];
+    form.querySelectorAll('input[name="products"]:checked').forEach(cb => vals.push(cb.value));
+    return vals;
+  }
+  function buildPayload(form){
+    const fd = new FormData(form);
+    const payload = Object.fromEntries(fd.entries());
+    payload.products = getSelectedProducts(form);
+    payload.created_at = new Date().toISOString();
+    payload.phone_norm = normalizePhone(payload.phone);
+    payload.lead_id = `PR-${payload.city || "XX"}-${String(Date.now()).slice(-6)}`;
+    return payload;
+  }
+  function toLeadCard(p){
+    const prods = (p.products && p.products.length) ? p.products.join(" + ") : "Solar";
+    return [
+      `[LEAD] ${p.name || "—"} — ${p.city || "—"}`,
+      `Interés: ${prods}`,
+      `Tel: ${p.phone || "—"}`,
+      `Mejor hora: ${p.best_time || "—"}`,
+      `Notas: ${p.notes || "—"}`,
+      `Status: ${p.status || "🆕 Nuevo"} | Owner: ${p.owner || "—"}`,
+      `ID: ${p.lead_id || "—"}`
+    ].join("\n");
+  }
+
+  // Local storage "kanban"
+  const LS_KEY = "ef_leads_v1";
+  function loadLeads(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "[]"); }
+    catch(e){ return []; }
+  }
+  function saveLeads(leads){ localStorage.setItem(LS_KEY, JSON.stringify(leads)); }
+  function upsertLead(lead){
+    const leads = loadLeads();
+    const idx = leads.findIndex(x => x.lead_id === lead.lead_id);
+    if(idx >= 0) leads[idx] = { ...leads[idx], ...lead };
+    else leads.unshift(lead);
+    saveLeads(leads);
+    renderLeads();
+  }
+
+  function renderLeads(){
+    const leads = loadLeads();
+    const fs = $("filter_status").value;
+    const filtered = fs ? leads.filter(l => (l.status || "") === fs) : leads;
+
+    const root = $("leadList");
+    if(filtered.length === 0){
+      root.innerHTML = `<div class="small">No hay leads guardados aquí todavía.</div>`;
+      return;
+    }
+
+    root.innerHTML = filtered.map(l => {
+      const prods = (l.products && l.products.length) ? l.products.join(" + ") : "Solar";
+      const card = toLeadCard(l).replace(/"/g,'&quot;');
+      return `
+        <div class="leadRow" style="margin-top:10px;">
+          <div class="leadTop">
+            <div>
+              <div class="leadName">${l.name || "—"} <span class="small">(${l.city || "—"})</span></div>
+              <div class="small">Tel: ${l.phone || "—"} • Interés: ${prods}</div>
+              <div class="small">ID: ${l.lead_id} • ${new Date(l.created_at || Date.now()).toLocaleString()}</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;">
+              <select class="selectSm" data-action="status" data-id="${l.lead_id}">
+                ${["🆕 Nuevo","🎯 Acción hoy","🔁 Seguimiento","🔥 Alta probabilidad","✅ Cerrado","❌ Perdido"]
+                  .map(s => `<option ${((l.status||"🆕 Nuevo")===s)?"selected":""}>${s}</option>`).join("")}
+              </select>
+              <select class="selectSm" data-action="owner" data-id="${l.lead_id}">
+                ${["Sergio","Ivan","Danny"].map(o => `<option value="${o}" ${((l.owner||"Sergio")===o)?"selected":""}>${o}</option>`).join("")}
+              </select>
+              <button class="btn" type="button" data-action="copy" data-card="${card}">Copy</button>
+              <button class="btn" type="button" data-action="wa" data-to="MY" data-card="${card}">WA Me</button>
+              <button class="btn" type="button" data-action="wa" data-to="IVAN" data-card="${card}">WA Ivan</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    root.querySelectorAll("[data-action='status']").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const id = e.target.getAttribute("data-id");
+        const leads = loadLeads();
+        const idx = leads.findIndex(x => x.lead_id === id);
+        if(idx >= 0){ leads[idx].status = e.target.value; saveLeads(leads); }
+      });
+    });
+    root.querySelectorAll("[data-action='owner']").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const id = e.target.getAttribute("data-id");
+        const leads = loadLeads();
+        const idx = leads.findIndex(x => x.lead_id === id);
+        if(idx >= 0){ leads[idx].owner = e.target.value; saveLeads(leads); }
+      });
+    });
+    root.querySelectorAll("[data-action='copy']").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const t = e.target.getAttribute("data-card").replace(/&quot;/g,'"');
+        try{ await navigator.clipboard.writeText(t); setGenStatus("ok","Copiado ✅"); }
+        catch(err){ setGenStatus("err","No pude copiar automático."); }
+      });
+    });
+    root.querySelectorAll("[data-action='wa']").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const t = e.target.getAttribute("data-card").replace(/&quot;/g,'"');
+        const to = e.target.getAttribute("data-to");
+        const num = (to==="IVAN") ? IVAN_WA : MY_WA;
+        window.open(waLinkTo(num, t), "_blank");
+      });
+    });
+  }
+
+  // Theme
+  $("themeBtn").addEventListener("click", () => {
+    document.body.dataset.theme = (document.body.dataset.theme === "dark") ? "light" : "dark";
+    localStorage.setItem("ef_theme", document.body.dataset.theme);
+  });
+
+  // Capture (offline-first)
+  let lastCard = "";
+  $("leadForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = buildPayload(e.currentTarget);
+
+    if(!payload.products || payload.products.length === 0){
+      setStatus("err","Selecciona al menos 1: Solar / ADT.");
+      return;
+    }
+    payload.owner = payload.owner || "Sergio";
+    payload.status = payload.status || "🆕 Nuevo";
+
+    lastCard = toLeadCard(payload);
+    upsertLead(payload);
+
+    try{ await navigator.clipboard.writeText(lastCard); }catch(err){}
+    setStatus("ok","Guardado ✅ Abriendo WhatsApp con la tarjeta…");
+    window.open(waLinkTo(MY_WA, lastCard), "_blank");
+    e.currentTarget.reset();
+  });
+
+  $("copyBtn").addEventListener("click", async () => {
+    const payload = buildPayload($("leadForm"));
+    payload.owner = payload.owner || "Sergio";
+    payload.status = payload.status || "🆕 Nuevo";
+    lastCard = toLeadCard(payload);
+    try{ await navigator.clipboard.writeText(lastCard); setStatus("ok","Copiado ✅"); }
+    catch(e){ setStatus("err","No pude copiar automático."); }
+  });
+
+  $("sendIvanBtn").addEventListener("click", () => {
+    if(!lastCard) return setStatus("err","Primero genera/copias una tarjeta.");
+    window.open(waLinkTo(IVAN_WA, lastCard), "_blank");
+  });
+
+  $("sendDannyBtn").addEventListener("click", () => {
+    if(!lastCard) return setStatus("err","Primero genera/copias una tarjeta.");
+    if(!DANNY_WA) return setStatus("err","Falta poner el número de Danny en el código (DANNY_WA).");
+    window.open(waLinkTo(DANNY_WA, lastCard), "_blank");
+  });
+
+  // Generator
+  let lastPackText = "";
+  $("genBtn").addEventListener("click", async () => {
+    const zone = $("gen_zone").value;
+    const category = $("gen_category").value;
+    const n = Number($("gen_n").value || 25);
+    setGenStatus("ok","Generando…");
+
+    try{
+      const res = await fetch(GEN_ENDPOINT, {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ zone, category, n })
+      });
+      const data = await res.json().catch(() => ({}));
+      if(!res.ok) throw new Error(data.error || "Error generando batch.");
+
+      lastPackText = data.morning_pack || "";
+      (data.leads || []).forEach(l => upsertLead({
+        lead_id: l.lead_id,
+        name: l.lead_name,
+        phone: l.phone,
+        city: l.municipio,
+        products: (l.product_focus || ["Solar","ADT"]),
+        owner: l.owner || "Ivan",
+        status: l.status || "🆕 Nuevo",
+        notes: l.url ? ("Fuente: " + l.url) : "",
+        best_time: "11:00am - 1:00pm",
+        created_at: new Date().toISOString()
+      }));
+
+      setGenStatus("ok", "Listo ✅\n\nMORNING PACK:\n" + lastPackText);
+    }catch(err){
+      setGenStatus("err", "Error: " + (err.message || err));
+    }
+  });
+
+  $("copyPackBtn").addEventListener("click", async () => {
+    if(!lastPackText) return setGenStatus("err","Primero genera un batch.");
+    try{ await navigator.clipboard.writeText(lastPackText); setGenStatus("ok","Morning Pack copiado ✅"); }
+    catch(e){ setGenStatus("err","No pude copiar automático."); }
+  });
+
+  // Kanban actions
+  $("filter_status").addEventListener("change", renderLeads);
+
+  $("exportJsonBtn").addEventListener("click", async () => {
+    const leads = loadLeads();
+    const txt = JSON.stringify(leads, null, 2);
+    try{ await navigator.clipboard.writeText(txt); setGenStatus("ok","JSON copiado ✅"); }
+    catch(e){ setGenStatus("err","No pude copiar automático."); }
+  });
+
+  $("clearBtn").addEventListener("click", () => {
+    if(!confirm("¿Borrar todos los leads guardados en este dispositivo?")) return;
+    localStorage.removeItem(LS_KEY);
+    renderLeads();
+    setGenStatus("ok","Borrado ✅");
+  });
+
+  // Init
+  (function init(){
+    const saved = localStorage.getItem("ef_theme");
+    if(saved) document.body.dataset.theme = saved;
+    renderLeads();
+  })();
+</script>
+</body>
+</html>
